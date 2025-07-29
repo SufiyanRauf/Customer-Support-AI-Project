@@ -1,5 +1,15 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { OpenAI } from 'openai';
+import { Pinecone } from '@pinecone-database/pinecone';
+import { OpenAIEmbeddings } from "@langchain/openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const pinecone = new Pinecone({
+  apiKey: process.env.PINECONE_API_KEY,
+});
 
 const systemPrompt = `You are an AI-powered customer support assistant for HeadStarterAI, a platform that provides AI-driven interviews for software engineering positions.
 1. HeadStarterAI offers AI-powered interviews for software engineering positions.
@@ -13,47 +23,56 @@ const systemPrompt = `You are an AI-powered customer support assistant for HeadS
 Your goal is to provide accurate information, assist with common inquiries, and ensure a positive experience for all HeadStarterAI users.`;
 
 export async function POST(req) {
-    const openai = new OpenAI();
-    const data = await req.json();
+  const { messages, model = 'gpt-4o-mini' } = await req.json();
+  const lastMessage = messages[messages.length - 1];
 
-    try {
-        const completion = await openai.chat.completions.create({
-            messages: [
-                {
-                    role: 'system',
-                    content: systemPrompt,
-                },
-                ...data,
-            ],
-            model: 'gpt-4o-mini',
-            stream: true,
-        });
+  try {
+    const embeddings = new OpenAIEmbeddings({
+      openAIApiKey: process.env.OPENAI_API_KEY,
+    });
 
-        const stream = new ReadableStream({
-            async start(controller) {
-                const encoder = new TextEncoder();
+    const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
+    const vector = await embeddings.embedQuery(lastMessage.content);
 
-                try {
-                    for await (const chunk of completion) {
-                        const content = chunk.choices[0]?.delta?.content;
-                        if (content) {
-                            const text = encoder.encode(content);
-                            controller.enqueue(text);
-                        }
-                    }
-                } catch (err) {
-                    console.error("Error during stream processing:", err);
-                    controller.error(err);
-                } finally {
-                    controller.close();
-                }
-            }
-        });
+    const results = await pineconeIndex.query({
+      vector,
+      topK: 3,
+      includeMetadata: true,
+    });
 
-        return new NextResponse(stream);
+    const context = results.matches.map(match => match.metadata.text).join('\n\n');
 
-    } catch (error) {
-        console.error("Error creating OpenAI completion:", error);
-        return NextResponse.json({ error: "Failed to process chat completion." }, { status: 500 });
-    }
+    const newSystemPrompt = `${systemPrompt}\n\nHere is some additional context that might be useful:\n\n${context}`;
+
+    const completion = await openai.chat.completions.create({
+      model,
+      stream: true,
+      messages: [
+        {
+          role: 'system',
+          content: newSystemPrompt,
+        },
+        ...messages,
+      ],
+    });
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        for await (const chunk of completion) {
+          const content = chunk.choices[0]?.delta?.content;
+          if (content) {
+            controller.enqueue(encoder.encode(content));
+          }
+        }
+        controller.close();
+      },
+    });
+
+    return new NextResponse(stream);
+
+  } catch (error) {
+    console.error("Error creating OpenAI completion:", error);
+    return NextResponse.json({ error: "Failed to process chat completion." }, { status: 500 });
+  }
 }

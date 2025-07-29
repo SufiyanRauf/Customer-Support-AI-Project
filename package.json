@@ -9,13 +9,19 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.856.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@langchain/openai": "^0.6.3",
+    "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
+    "@pinecone-database/pinecone": "^6.1.2",
+    "langchain": "^0.3.30",
     "next": "15.4.4",
     "openai": "^5.10.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-syntax-highlighter": "^15.6.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
