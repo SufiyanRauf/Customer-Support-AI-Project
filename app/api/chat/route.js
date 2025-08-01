@@ -45,13 +45,17 @@ export async function POST(req) {
       model: model,
       systemInstruction: newSystemPrompt,
     });
+    
+    // ** FIX: Filter out any initial assistant messages from the history **
+    const chatHistory = messages.slice(0, -1).filter(msg => msg.role === 'user' || (msg.role === 'assistant' && msg.content !== 'Hi there! I\'m your friendly HeadStarter AI. How can I brighten your day?'));
 
-    const chatHistory = messages.slice(0, -1).map(msg => ({
-      role: msg.role,
-      parts: [{ text: msg.content }],
-    }));
-
-    const chat = geminiModel.startChat({ history: chatHistory });
+    const chat = geminiModel.startChat({
+      history: chatHistory.map(msg => ({
+        role: msg.role,
+        parts: [{ text: msg.content }],
+      })),
+    });
+    
     const result = await chat.sendMessageStream(lastMessage.content);
     
     const stream = new ReadableStream({
