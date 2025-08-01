@@ -8,16 +8,16 @@ const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
 });
 
-const systemPrompt = `You are an AI-powered customer support assistant for HeadStarterAI, a platform that provides AI-driven interviews for software engineering positions.
-1. HeadStarterAI offers AI-powered interviews for software engineering positions.
-2. Our platform helps candidates practice and prepare for real job interviews.
-3. We cover a wide range of topics including algorithms, data structures, system design, and behavioral questions.
-4. Users can access our services through our website or mobile app.
+const systemPrompt = `You are an AI-powered assistant for a platform that provides AI-driven interviews for software engineering positions.
+1. The platform offers AI-powered interviews for software engineering positions.
+2. The platform helps candidates practice and prepare for real job interviews.
+3. The platform covers a wide range of topics including algorithms, data structures, system design, and behavioral questions.
+4. Users can access the services through our website or mobile app.
 5. If asked about technical issues, guide users to our troubleshooting page or suggest contacting our technical support team.
 6. Always maintain user privacy and do not share personal information.
 7. If you're unsure about any information, it's okay to say you don't know and offer to connect the user with a human representative.
 
-Your goal is to provide accurate information, assist with common inquiries, and ensure a positive experience for all HeadStarterAI users.`;
+Your goal is to provide accurate information, assist with common inquiries, and ensure a positive experience for all users.`;
 
 export async function POST(req) {
   const { messages, model = 'gemini-1.5-flash' } = await req.json();
@@ -46,12 +46,12 @@ export async function POST(req) {
       systemInstruction: newSystemPrompt,
     });
     
-    // ** FIX: Filter out any initial assistant messages from the history **
+    // FIX: Filter out any initial assistant messages from the history
     const chatHistory = messages.slice(0, -1).filter(msg => msg.role === 'user' || (msg.role === 'assistant' && msg.content !== 'Hi there! I\'m your friendly HeadStarter AI. How can I brighten your day?'));
 
     const chat = geminiModel.startChat({
       history: chatHistory.map(msg => ({
-        role: msg.role,
+        role: msg.role === 'assistant' ? 'model' : 'user', // Use 'model' for assistant messages
         parts: [{ text: msg.content }],
       })),
     });

@@ -150,7 +150,7 @@ function Home() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Hi there! I\'m your friendly HeadStarter AI. How can I brighten your day?',
+      content: 'Hi there! I\'m your AI Interview Prep Assistant. How can I help you today?',
     }
   ]);
   const [message, setMessage] = useState('');
@@ -227,7 +227,7 @@ function Home() {
     >
       <Paper elevation={4} sx={{ p: 2, bgcolor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(10px)' }}>
         <Typography variant="h5" component="h1" align="center" color="primary.main">
-          HeadStarter AI Assistant
+          AI Interview Prep Assistant
         </Typography>
       </Paper>
       <Stack

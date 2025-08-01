@@ -1,5 +1,6 @@
-HeadStarter AI is a company that helps aspiring software engineers prepare for technical interviews. We offer a platform with AI-powered mock interviews that cover a wide range of topics, including algorithms, data structures, system design, and behavioral questions. Our goal is to provide a realistic and effective way for candidates to practice and improve their interview skills.
-
-Our services are available through our website and mobile app. We offer a variety of subscription plans to fit different needs and budgets. We also provide free resources, such as a blog with interview tips and a community forum where users can connect with each other.
-
-If you have any questions or need help with our platform, please visit our troubleshooting page or contact our technical support team. We are always happy to help.
+This is an AI-powered platform that helps aspiring software engineers prepare for technical interviews.
+We offer mock interviews that cover a wide range of topics, including algorithms, data structures, system design, and behavioral questions.
+Our goal is to provide a realistic and effective way for candidates to practice and improve their interview skills.
+Our services are available through our website and mobile app.
+We also provide free resources, such as a blog with interview tips and a community forum where users can connect with each other.
+If you have any questions or need help with our platform, please visit our troubleshooting page or contact our technical support team.

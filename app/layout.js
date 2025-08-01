@@ -8,8 +8,8 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "HeadStarter AI Assistant",
-  description: "A colorful and friendly AI chatbot.",
+  title: "AI Interview Prep Assistant",
+  description: "A friendly AI chatbot to help with software engineering interview preparation.",
 };
 
 export default function RootLayout({ children }) {
