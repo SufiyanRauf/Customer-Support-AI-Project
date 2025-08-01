@@ -22,8 +22,15 @@ export async function POST() {
     const chunks = await splitter.splitText(text);
 
     const embeddings = new OpenAIEmbeddings({
+      modelName: "openai/text-embedding-ada-002", // Explicitly specify the embedding model
       openAIApiKey: process.env.OPENROUTER_API_KEY,
-      baseURL: "https://openrouter.ai/api/v1",
+      configuration: {
+        baseURL: "https://openrouter.ai/api/v1",
+        defaultHeaders: {
+            "HTTP-Referer": process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+            "X-Title": "HeadStarter AI Assistant",
+        }
+      }
     });
 
     const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
