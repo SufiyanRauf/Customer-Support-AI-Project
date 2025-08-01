@@ -22,7 +22,8 @@ export async function POST() {
     const chunks = await splitter.splitText(text);
 
     const embeddings = new OpenAIEmbeddings({
-      openAIApiKey: process.env.OPENAI_API_KEY,
+      openAIApiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: "https://openrouter.ai/api/v1",
     });
 
     const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);

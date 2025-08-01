@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 export async function POST(req) {
@@ -15,14 +16,14 @@ export async function POST(req) {
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'meta-llama/llama-3.1-8b-instruct',
       messages: [{ role: 'user', content: routerPrompt }],
     });
 
     const route = response.choices[0].message.content.toLowerCase();
-    let model = 'gpt-4o-mini';
+    let model = 'meta-llama/llama-3.1-8b-instruct';
     if (route.includes('code')) {
-      model = 'gpt-4'; // Use a more powerful model for code
+      model = 'meta-llama/llama-3.1-405b-instruct'; // Use a more powerful model for code
     }
 
     const chatResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {

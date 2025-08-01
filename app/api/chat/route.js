@@ -4,7 +4,8 @@ import { Pinecone } from '@pinecone-database/pinecone';
 import { OpenAIEmbeddings } from "@langchain/openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 const pinecone = new Pinecone({
@@ -23,12 +24,13 @@ const systemPrompt = `You are an AI-powered customer support assistant for HeadS
 Your goal is to provide accurate information, assist with common inquiries, and ensure a positive experience for all HeadStarterAI users.`;
 
 export async function POST(req) {
-  const { messages, model = 'gpt-4o-mini' } = await req.json();
+  const { messages, model = 'meta-llama/llama-3.1-8b-instruct' } = await req.json();
   const lastMessage = messages[messages.length - 1];
 
   try {
     const embeddings = new OpenAIEmbeddings({
-      openAIApiKey: process.env.OPENAI_API_KEY,
+      openAIApiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: "https://openrouter.ai/api/v1",
     });
 
     const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
