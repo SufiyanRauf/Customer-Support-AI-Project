@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Pinecone } from '@pinecone-database/pinecone';
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -21,16 +21,9 @@ export async function POST() {
 
     const chunks = await splitter.splitText(text);
 
-    const embeddings = new OpenAIEmbeddings({
-      modelName: "jinaai/jina-embeddings-v2-base-en", // Correct free embedding model
-      openAIApiKey: process.env.OPENROUTER_API_KEY,
-      configuration: {
-        baseURL: "https://openrouter.ai/api/v1",
-        defaultHeaders: {
-            "HTTP-Referer": process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
-            "X-Title": "HeadStarter AI Assistant",
-        }
-      }
+    const embeddings = new GoogleGenerativeAIEmbeddings({
+      apiKey: process.env.GOOGLE_API_KEY,
+      modelName: "embedding-001", // The correct model for Google AI
     });
 
     const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);

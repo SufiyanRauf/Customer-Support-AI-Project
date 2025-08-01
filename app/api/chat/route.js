@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 import { Pinecone } from '@pinecone-database/pinecone';
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
@@ -28,16 +28,9 @@ export async function POST(req) {
   const lastMessage = messages[messages.length - 1];
 
   try {
-    const embeddings = new OpenAIEmbeddings({
-      modelName: "jinaai/jina-embeddings-v2-base-en", // Correct free embedding model
-      openAIApiKey: process.env.OPENROUTER_API_KEY,
-      configuration: {
-        baseURL: "https://openrouter.ai/api/v1",
-        defaultHeaders: {
-            "HTTP-Referer": process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
-            "X-Title": "HeadStarter AI Assistant",
-        }
-      }
+    const embeddings = new GoogleGenerativeAIEmbeddings({
+      apiKey: process.env.GOOGLE_API_KEY,
+      modelName: "embedding-001", // The correct model for Google AI
     });
 
     const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
