@@ -46,8 +46,8 @@ export async function POST(req) {
       systemInstruction: newSystemPrompt,
     });
     
-    // FIX: Filter out any initial assistant messages from the history
-    const chatHistory = messages.slice(0, -1).filter(msg => msg.role === 'user' || (msg.role === 'assistant' && msg.content !== 'Hi there! I\'m your friendly HeadStarter AI. How can I brighten your day?'));
+    // ** FIX: Filter out the correct initial assistant welcome message **
+    const chatHistory = messages.slice(0, -1).filter(msg => msg.role === 'user' || (msg.role === 'assistant' && msg.content !== "Hi there! I'm your AI Interview Prep Assistant. How can I help you today?"));
 
     const chat = geminiModel.startChat({
       history: chatHistory.map(msg => ({
