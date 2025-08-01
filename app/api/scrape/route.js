@@ -22,7 +22,7 @@ export async function POST() {
     const chunks = await splitter.splitText(text);
 
     const embeddings = new OpenAIEmbeddings({
-      modelName: "openai/text-embedding-ada-002", // Explicitly specify the embedding model
+      modelName: "sentence-transformers/all-minilm-l6-v2", // Correct free embedding model
       openAIApiKey: process.env.OPENROUTER_API_KEY,
       configuration: {
         baseURL: "https://openrouter.ai/api/v1",
