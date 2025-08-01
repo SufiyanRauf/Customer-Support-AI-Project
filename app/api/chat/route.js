@@ -8,6 +8,9 @@ const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
 });
 
+// Helper function to delay execution
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 const systemPrompt = `You are an AI-powered assistant for a platform that provides AI-driven interviews for software engineering positions.
 1. The platform offers AI-powered interviews for software engineering positions.
 2. The platform helps candidates practice and prepare for real job interviews.
@@ -46,17 +49,34 @@ export async function POST(req) {
       systemInstruction: newSystemPrompt,
     });
     
-    // ** FIX: Filter out the correct initial assistant welcome message **
     const chatHistory = messages.slice(0, -1).filter(msg => msg.role === 'user' || (msg.role === 'assistant' && msg.content !== "Hi there! I'm your AI Interview Prep Assistant. How can I help you today?"));
 
     const chat = geminiModel.startChat({
       history: chatHistory.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user', // Use 'model' for assistant messages
+        role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }],
       })),
     });
     
-    const result = await chat.sendMessageStream(lastMessage.content);
+    let result;
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    // Retry logic for API call
+    while (attempts < maxAttempts) {
+      try {
+        result = await chat.sendMessageStream(lastMessage.content);
+        break; // Success, exit the loop
+      } catch (error) {
+        if (error.status === 503 && attempts < maxAttempts - 1) {
+          console.log(`Model overloaded, retrying in ${attempts + 1} second(s)...`);
+          await delay((attempts + 1) * 1000);
+          attempts++;
+        } else {
+          throw error; // Re-throw other errors or on final attempt
+        }
+      }
+    }
     
     const stream = new ReadableStream({
       async start(controller) {
