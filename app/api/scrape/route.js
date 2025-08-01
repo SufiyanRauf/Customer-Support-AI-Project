@@ -22,8 +22,8 @@ export async function POST() {
     const chunks = await splitter.splitText(text);
 
     const embeddings = new GoogleGenerativeAIEmbeddings({
-      apiKey: process.env.GOOGLE_API_KEY,
-      modelName: "embedding-001", // The correct model for Google AI
+      apiKey: process.env.GOOGLE_STUDIO_API_KEY,
+      modelName: "embedding-001",
     });
 
     const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);

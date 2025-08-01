@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server';
-import { OpenAI } from 'openai';
 import { Pinecone } from '@pinecone-database/pinecone';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
-
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_STUDIO_API_KEY);
 const pinecone = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY,
 });
@@ -24,13 +20,13 @@ const systemPrompt = `You are an AI-powered customer support assistant for HeadS
 Your goal is to provide accurate information, assist with common inquiries, and ensure a positive experience for all HeadStarterAI users.`;
 
 export async function POST(req) {
-  const { messages, model = 'meta-llama/llama-3.1-8b-instruct' } = await req.json();
+  const { messages, model = 'gemini-1.5-flash' } = await req.json();
   const lastMessage = messages[messages.length - 1];
 
   try {
     const embeddings = new GoogleGenerativeAIEmbeddings({
-      apiKey: process.env.GOOGLE_API_KEY,
-      modelName: "embedding-001", // The correct model for Google AI
+      apiKey: process.env.GOOGLE_STUDIO_API_KEY,
+      modelName: "embedding-001",
     });
 
     const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
@@ -43,28 +39,28 @@ export async function POST(req) {
     });
 
     const context = results.matches.map(match => match.metadata.text).join('\n\n');
-
     const newSystemPrompt = `${systemPrompt}\n\nHere is some additional context that might be useful:\n\n${context}`;
-
-    const completion = await openai.chat.completions.create({
-      model,
-      stream: true,
-      messages: [
-        {
-          role: 'system',
-          content: newSystemPrompt,
-        },
-        ...messages,
-      ],
+    
+    const geminiModel = genAI.getGenerativeModel({
+      model: model,
+      systemInstruction: newSystemPrompt,
     });
 
+    const chatHistory = messages.slice(0, -1).map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content }],
+    }));
+
+    const chat = geminiModel.startChat({ history: chatHistory });
+    const result = await chat.sendMessageStream(lastMessage.content);
+    
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
-        for await (const chunk of completion) {
-          const content = chunk.choices[0]?.delta?.content;
-          if (content) {
-            controller.enqueue(encoder.encode(content));
+        for await (const chunk of result.stream) {
+          const text = chunk.text();
+          if (text) {
+            controller.enqueue(encoder.encode(text));
           }
         }
         controller.close();
@@ -74,7 +70,7 @@ export async function POST(req) {
     return new NextResponse(stream);
 
   } catch (error) {
-    console.error("Error creating OpenAI completion:", error);
+    console.error("Error creating Google completion:", error);
     return NextResponse.json({ error: "Failed to process chat completion." }, { status: 500 });
   }
 }

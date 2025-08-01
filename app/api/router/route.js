@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_STUDIO_API_KEY);
 
 export async function POST(req) {
   const { messages } = await req.json();
@@ -15,15 +12,14 @@ export async function POST(req) {
   User query: "${lastMessage.content}"`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'meta-llama/llama-3.1-8b-instruct',
-      messages: [{ role: 'user', content: routerPrompt }],
-    });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(routerPrompt);
+    const response = await result.response;
+    const route = response.text().toLowerCase();
 
-    const route = response.choices[0].message.content.toLowerCase();
-    let model = 'meta-llama/llama-3.1-8b-instruct';
+    let modelName = 'gemini-1.5-flash';
     if (route.includes('code')) {
-      model = 'meta-llama/llama-3.1-405b-instruct'; // Use a more powerful model for code
+      modelName = 'gemini-1.5-pro'; // Use a more powerful model for code
     }
 
     const chatResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
@@ -31,7 +27,7 @@ export async function POST(req) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ messages, model }),
+      body: JSON.stringify({ messages, model: modelName }),
     });
 
     return new NextResponse(chatResponse.body, {
